@@ -14,11 +14,6 @@ echo ACCEPT_EULA=Y | tee -a /etc/environment
 mkdir -p /etc/skel/.config/configstore
 echo 'XDG_CONFIG_HOME=$HOME/.config' | tee -a /etc/environment
 
-# Change waagent entries to use /mnt for swapfile
-sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
-sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
-sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
-
 # Add localhost alias to ::1 IPv6
 sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 
@@ -35,13 +30,6 @@ echo 'vm.max_map_count=262144' | tee -a /etc/sysctl.conf
 # https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files
 echo 'fs.inotify.max_user_watches=655360' | tee -a /etc/sysctl.conf
 echo 'fs.inotify.max_user_instances=1280' | tee -a /etc/sysctl.conf
-
-# https://github.com/actions/runner-images/pull/7860
-netfilter_rule='/etc/udev/rules.d/50-netfilter.rules'
-rulesd="$(dirname "${netfilter_rule}")"
-mkdir -p $rulesd
-touch $netfilter_rule
-echo 'ACTION=="add", SUBSYSTEM=="module", KERNEL=="nf_conntrack", RUN+="/usr/sbin/sysctl net.netfilter.nf_conntrack_tcp_be_liberal=1"' | tee -a $netfilter_rule
 
 # Create symlink for tests running
 chmod +x $HELPER_SCRIPTS/invoke-tests.sh
